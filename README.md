@@ -53,7 +53,6 @@ apex-ds/
 │   ├── 2025-06-23.md
 │   ├── 2025-06-24.md
 │   └── ...
-└── commit.sh          # Automation script
 ```
 
 ---
