@@ -53,7 +53,6 @@ apex-ds/
 │   ├── 2025-06-23.md
 │   ├── 2025-06-24.md
 │   └── ...
-└── commit.sh          # Automation script
 ```
 
 ---
@@ -83,7 +82,7 @@ This diary captures my journey through a comprehensive Data Science training pro
 
 ## 🛠️ Interactive Web View
 
-For a more interactive experience, visit: [**Interactive Diary Dashboard**](https://manish.github.io/apex-ds/)
+For a more interactive experience, visit: [**Interactive Diary Dashboard**](https://manish-01882.github.io/TR-103/)
 
 *(Coming soon - an enhanced web interface with filtering, search, and visual analytics)*
 
