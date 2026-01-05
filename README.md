@@ -1,5 +1,6 @@
 # 📚 Data Science Training Daily Diary
 
+
 > **Training Period:** June 23, 2025 - July 21, 2025
 
 Welcome to my Data Science training journey! This repository documents my daily learning experiences, skills acquired, and projects completed during an intensive 29-day Data Science training program.
@@ -113,3 +114,4 @@ Feel free to explore my learning journey and reach out if you have questions or 
 *Last Updated: January 2026*
 
 </div>
+
