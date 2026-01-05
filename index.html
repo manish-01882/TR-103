@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data Science Training Diary - Interactive Calendar</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --primary-light: #818cf8;
+            --secondary: #ec4899;
+            --success: #10b981;
+            --background: #0f172a;
+            --surface: #1e293b;
+            --surface-light: #334155;
+            --text: #f1f5f9;
+            --text-muted: #94a3b8;
+            --border: #334155;
+            --shadow: rgba(99, 102, 241, 0.1);
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            color: var(--text);
+            min-height: 100vh;
+            padding: 2rem;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+            animation: fadeInDown 0.6s ease-out;
+        }
+
+        .header h1 {
+            font-size: 3rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--primary-light) 0%, var(--secondary) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 0.5rem;
+        }
+
+        .header .subtitle {
+            font-size: 1.25rem;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        .header .period {
+            display: inline-block;
+            margin-top: 1rem;
+            padding: 0.75rem 1.5rem;
+            background: var(--surface);
+            border-radius: 50px;
+            border: 2px solid var(--border);
+            font-weight: 600;
+            color: var(--primary-light);
+        }
+
+        /* Stats Cards */
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 3rem;
+            animation: fadeInUp 0.6s ease-out 0.2s both;
+        }
+
+        .stat-card {
+            background: var(--surface);
+            padding: 1.5rem;
+            border-radius: 16px;
+            border: 2px solid var(--border);
+            text-align: center;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            transform: scaleX(0);
+            transition: transform 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--primary);
+            box-shadow: 0 20px 40px var(--shadow);
+        }
+
+        .stat-card:hover::before {
+            transform: scaleX(1);
+        }
+
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: var(--primary-light);
+            display: block;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            color: var(--text-muted);
+            font-weight: 500;
+            text-transform: uppercase;
+            font-size: 0.875rem;
+            letter-spacing: 0.05em;
+        }
+
+        /* Calendar Section */
+        .calendar-section {
+            background: var(--surface);
+            padding: 2.5rem;
+            border-radius: 20px;
+            margin-bottom: 2rem;
+            border: 2px solid var(--border);
+            animation: fadeInUp 0.6s ease-out 0.4s both;
+        }
+
+        .calendar-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .calendar-header h2 {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--primary-light);
+            margin-bottom: 0.5rem;
+        }
+
+        .month-label {
+            display: inline-block;
+            padding: 0.5rem 1.5rem;
+            background: var(--background);
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 1.125rem;
+            margin-bottom: 1.5rem;
+        }
+
+        /* Calendar Grid */
+        .calendar {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .day-header {
+            text-align: center;
+            font-weight: 700;
+            color: var(--primary-light);
+            padding: 0.75rem;
+            font-size: 0.875rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .day {
+            aspect-ratio: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--background);
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 1.125rem;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+            border: 2px solid transparent;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .day.empty {
+            opacity: 0.3;
+            cursor: default;
+            background: var(--surface-light);
+        }
+
+        .day.active {
+            cursor: pointer;
+            border-color: var(--border);
+        }
+
+        .day.active::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .day.active:hover::before {
+            opacity: 0.15;
+        }
+
+        .day.active:hover {
+            transform: scale(1.1);
+            border-color: var(--primary);
+            box-shadow: 0 10px 30px var(--shadow);
+            z-index: 10;
+        }
+
+        .day.active span {
+            position: relative;
+            z-index: 1;
+        }
+
+        .day.active:hover span {
+            color: var(--primary-light);
+            font-weight: 700;
+        }
+
+        /* Diary Viewer */
+        .diary-viewer {
+            background: var(--surface);
+            padding: 2.5rem;
+            border-radius: 20px;
+            border: 2px solid var(--border);
+            display: none;
+            animation: fadeInUp 0.4s ease-out;
+        }
+
+        .diary-viewer.active {
+            display: block;
+        }
+
+        .diary-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 2px solid var(--border);
+        }
+
+        .diary-date {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: var(--primary-light);
+        }
+
+        .close-btn {
+            background: var(--background);
+            border: 2px solid var(--border);
+            color: var(--text);
+            padding: 0.75rem 1.5rem;
+            border-radius: 50px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: inherit;
+            font-size: 1rem;
+        }
+
+        .close-btn:hover {
+            background: var(--primary);
+            border-color: var(--primary);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px var(--shadow);
+        }
+
+        .diary-content {
+            line-height: 1.8;
+        }
+
+        .diary-content h2 {
+            color: var(--primary-light);
+            margin-top: 2rem;
+            margin-bottom: 1rem;
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        .diary-content h2:first-child {
+            margin-top: 0;
+        }
+
+        .diary-content ul {
+            margin-left: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .diary-content li {
+            margin-bottom: 0.5rem;
+            color: var(--text-muted);
+        }
+
+        .diary-content p {
+            margin-bottom: 1rem;
+            color: var(--text-muted);
+        }
+
+        /* Loading State */
+        .loading {
+            text-align: center;
+            padding: 3rem;
+            color: var(--text-muted);
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid var(--border);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+
+        /* Animations */
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            margin-top: 3rem;
+            padding-top: 2rem;
+            border-top: 2px solid var(--border);
+            color: var(--text-muted);
+            animation: fadeInUp 0.6s ease-out 0.6s both;
+        }
+
+        .footer a {
+            color: var(--primary-light);
+            text-decoration: none;
+            font-weight: 600;
+            transition: color 0.3s ease;
+        }
+
+        .footer a:hover {
+            color: var(--secondary);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            body {
+                padding: 1rem;
+            }
+
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            .calendar-section {
+                padding: 1.5rem;
+            }
+
+            .calendar {
+                gap: 0.5rem;
+            }
+
+            .day {
+                font-size: 1rem;
+            }
+
+            .diary-viewer {
+                padding: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>📚 Data Science Training Diary</h1>
+            <p class="subtitle">My Journey Through 29 Days of Intensive Learning</p>
+            <div class="period">📅 June 23 - July 21, 2025</div>
+        </div>
+
+        <!-- Stats -->
+        <div class="stats">
+            <div class="stat-card">
+                <span class="stat-value">29</span>
+                <span class="stat-label">Training Days</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-value">1</span>
+                <span class="stat-label">Months</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-value">100%</span>
+                <span class="stat-label">Completion</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-value">∞</span>
+                <span class="stat-label">Knowledge Gained</span>
+            </div>
+        </div>
+
+        <!-- June Calendar -->
+        <div class="calendar-section">
+            <div class="calendar-header">
+                <h2>📅 Select a Day to View Diary</h2>
+                <div class="month-label">June 2025</div>
+            </div>
+            <div class="calendar">
+                <div class="day-header">Sun</div>
+                <div class="day-header">Mon</div>
+                <div class="day-header">Tue</div>
+                <div class="day-header">Wed</div>
+                <div class="day-header">Thu</div>
+                <div class="day-header">Fri</div>
+                <div class="day-header">Sat</div>
+                
+                <div class="day empty"></div>
+                <div class="day empty"></div>
+                <div class="day empty"></div>
+                <div class="day empty"></div>
+                <div class="day empty"></div>
+                <div class="day empty"></div>
+                <div class="day empty"></div>
+                
+                <div class="day empty"></div>
+                <div class="day empty"></div>
+                <div class="day empty"></div>
+                <div class="day empty"></div>
+                <div class="day empty"></div>
+                <div class="day empty"></div>
+                <div class="day empty"></div>
+                
+                <div class="day empty"></div>
+                <div class="day empty"></div>
+                <div class="day empty"></div>
+                <div class="day empty"></div>
+                <div class="day empty"></div>
+                <div class="day empty"></div>
+                <div class="day empty"></div>
+                
+                <div class="day empty"></div>
+                <div class="day empty"></div>
+                <div class="day empty"></div>
+                <div class="day active" data-date="2025-06-23"><span>23</span></div>
+                <div class="day active" data-date="2025-06-24"><span>24</span></div>
+                <div class="day active" data-date="2025-06-25"><span>25</span></div>
+                <div class="day active" data-date="2025-06-26"><span>26</span></div>
+                
+                <div class="day active" data-date="2025-06-27"><span>27</span></div>
+                <div class="day active" data-date="2025-06-28"><span>28</span></div>
+                <div class="day active" data-date="2025-06-29"><span>29</span></div>
+                <div class="day active" data-date="2025-06-30"><span>30</span></div>
+                <div class="day empty"></div>
+                <div class="day empty"></div>
+                <div class="day empty"></div>
+            </div>
+        </div>
+
+        <!-- July Calendar -->
+        <div class="calendar-section">
+            <div class="calendar-header">
+                <div class="month-label">July 2025</div>
+            </div>
+            <div class="calendar">
+                <div class="day-header">Sun</div>
+                <div class="day-header">Mon</div>
+                <div class="day-header">Tue</div>
+                <div class="day-header">Wed</div>
+                <div class="day-header">Thu</div>
+                <div class="day-header">Fri</div>
+                <div class="day-header">Sat</div>
+                
+                <div class="day empty"></div>
+                <div class="day empty"></div>
+                <div class="day active" data-date="2025-07-01"><span>1</span></div>
+                <div class="day active" data-date="2025-07-02"><span>2</span></div>
+                <div class="day active" data-date="2025-07-03"><span>3</span></div>
+                <div class="day active" data-date="2025-07-04"><span>4</span></div>
+                <div class="day active" data-date="2025-07-05"><span>5</span></div>
+                
+                <div class="day active" data-date="2025-07-06"><span>6</span></div>
+                <div class="day active" data-date="2025-07-07"><span>7</span></div>
+                <div class="day active" data-date="2025-07-08"><span>8</span></div>
+                <div class="day active" data-date="2025-07-09"><span>9</span></div>
+                <div class="day active" data-date="2025-07-10"><span>10</span></div>
+                <div class="day active" data-date="2025-07-11"><span>11</span></div>
+                <div class="day active" data-date="2025-07-12"><span>12</span></div>
+                
+                <div class="day active" data-date="2025-07-13"><span>13</span></div>
+                <div class="day active" data-date="2025-07-14"><span>14</span></div>
+                <div class="day active" data-date="2025-07-15"><span>15</span></div>
+                <div class="day active" data-date="2025-07-16"><span>16</span></div>
+                <div class="day active" data-date="2025-07-17"><span>17</span></div>
+                <div class="day active" data-date="2025-07-18"><span>18</span></div>
+                <div class="day active" data-date="2025-07-19"><span>19</span></div>
+                
+                <div class="day active" data-date="2025-07-20"><span>20</span></div>
+                <div class="day active" data-date="2025-07-21"><span>21</span></div>
+                <div class="day empty"></div>
+                <div class="day empty"></div>
+                <div class="day empty"></div>
+                <div class="day empty"></div>
+                <div class="day empty"></div>
+            </div>
+        </div>
+
+        <!-- Diary Viewer -->
+        <div class="diary-viewer" id="diaryViewer">
+            <div class="diary-header">
+                <div class="diary-date" id="diaryDate"></div>
+                <button class="close-btn" onclick="closeDiary()">✕ Close</button>
+            </div>
+            <div class="diary-content" id="diaryContent">
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <p>Loading diary entry...</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <p><a href="https://github.com/manish/TR-103" target="_blank">View on GitHub</a></p>
+            <p>© 2025 • Data Science Training Diary</p>
+        </div>
+    </div>
+
+    <script>
+        // Diary data mapping
+        const diaryFiles = {
+            '2025-06-23': 'diary/2025-06-23.md',
+            '2025-06-24': 'diary/2025-06-24.md',
+            '2025-06-25': 'diary/2025-06-25.md',
+            '2025-06-26': 'diary/2025-06-26.md',
+            '2025-06-27': 'diary/2025-06-27.md',
+            '2025-06-28': 'diary/2025-06-28.md',
+            '2025-06-29': 'diary/2025-06-29.md',
+            '2025-06-30': 'diary/2025-06-30.md',
+            '2025-07-01': 'diary/2025-07-01.md',
+            '2025-07-02': 'diary/2025-07-02.md',
+            '2025-07-03': 'diary/2025-07-03.md',
+            '2025-07-04': 'diary/2025-07-04.md',
+            '2025-07-05': 'diary/2025-07-05.md',
+            '2025-07-06': 'diary/2025-07-06.md',
+            '2025-07-07': 'diary/2025-07-07.md',
+            '2025-07-08': 'diary/2025-07-08.md',
+            '2025-07-09': 'diary/2025-07-09.md',
+            '2025-07-10': 'diary/2025-07-10.md',
+            '2025-07-11': 'diary/2025-07-11.md',
+            '2025-07-12': 'diary/2025-07-12.md',
+            '2025-07-13': 'diary/2025-07-13.md',
+            '2025-07-14': 'diary/2025-07-14.md',
+            '2025-07-15': 'diary/2025-07-15.md',
+            '2025-07-16': 'diary/2025-07-16.md',
+            '2025-07-17': 'diary/2025-07-17.md',
+            '2025-07-18': 'diary/2025-07-18.md',
+            '2025-07-19': 'diary/2025-07-19.md',
+            '2025-07-20': 'diary/2025-07-20.md',
+            '2025-07-21': 'diary/2025-07-21.md'
+        };
+
+        // Add click handlers to all active days
+        document.querySelectorAll('.day.active').forEach(day => {
+            day.addEventListener('click', function() {
+                const date = this.getAttribute('data-date');
+                loadDiary(date);
+            });
+        });
+
+        // Load diary entry
+        async function loadDiary(date) {
+            const viewer = document.getElementById('diaryViewer');
+            const dateElement = document.getElementById('diaryDate');
+            const contentElement = document.getElementById('diaryContent');
+            
+            // Format date for display
+            const dateObj = new Date(date);
+            const options = { year: 'numeric', month: 'long', day: 'numeric' };
+            dateElement.textContent = dateObj.toLocaleDateString('en-US', options);
+            
+            // Show viewer with loading state
+            viewer.classList.add('active');
+            contentElement.innerHTML = '<div class="loading"><div class="spinner"></div><p>Loading diary entry...</p></div>';
+            
+            // Scroll to viewer
+            viewer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            
+            try {
+                const response = await fetch(diaryFiles[date]);
+                if (!response.ok) throw new Error('Failed to load diary');
+                
+                let content = await response.text();
+                
+                // Remove markdown code fence if present
+                content = content.replace(/^```markdown\n/gm, '');
+                content = content.replace(/\n```$/gm, '');
+                
+                // Simple markdown to HTML conversion
+                content = content
+                    .replace(/^# (.+)$/gm, '<h2>$1</h2>')
+                    .replace(/^## (.+)$/gm, '<h2>$1</h2>')
+                    .replace(/^- (.+)$/gm, '<li>$1</li>')
+                    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+                    .replace(/\n\n/g, '</p><p>')
+                    .replace(/<li>/g, '<ul><li>')
+                    .replace(/<\/li>(?![\s\S]*<li>)/g, '</li></ul>');
+                
+                // Wrap standalone text in paragraphs
+                if (!content.startsWith('<h2>') && !content.startsWith('<ul>')) {
+                    content = '<p>' + content;
+                }
+                if (!content.endsWith('</h2>') && !content.endsWith('</ul>') && !content.endsWith('</p>')) {
+                    content = content + '</p>';
+                }
+                
+                contentElement.innerHTML = content;
+            } catch (error) {
+                contentElement.innerHTML = '<p style="color: var(--secondary);">⚠️ Failed to load diary entry. Please try again.</p>';
+                console.error('Error loading diary:', error);
+            }
+        }
+
+        // Close diary viewer
+        function closeDiary() {
+            document.getElementById('diaryViewer').classList.remove('active');
+        }
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                closeDiary();
+            }
+        });
+    </script>
+</body>
+</html>
